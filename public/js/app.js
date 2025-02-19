@@ -1,11 +1,23 @@
 const chatForm = document.getElementById("chat-form");
+const chatMessages = document.querySelector(".chat-messages");
+
+// get username and room from URL
+const { username, room } = Qs.parse(location.search, {
+  ignoreQueryPrefix: true,
+});
 
 const socket = io();
+
+// Join chat room
+socket.emit("joinRoom", { username, room }); //sending the usrename and room name from frontend to server
 
 // Message from server
 socket.on("message", (message) => {
   console.log(message);
   outputMessage(message);
+
+  //auto scroll down on new messages
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 
 // Message submit
@@ -17,6 +29,10 @@ chatForm.addEventListener("submit", (e) => {
 
   // Emitting message to server
   socket.emit("chatMessage", msg);
+
+  //clearing the input div
+  e.target.elements.msg.value = "";
+  e.target.elements.msg.focus();
 });
 // How this particular process(e.target.elements.msg.value) work??
 
@@ -43,9 +59,9 @@ chatForm.addEventListener("submit", (e) => {
 function outputMessage(message) {
   const div = document.createElement("div");
   div.classList.add("message");
-  div.innerHTML = `<p class="meta">Aryan <span>10:00pm</span></p>
+  div.innerHTML = `<p class="meta">${message.username} <span>${message.time}</span></p>
             <p class="text">
-             ${message}
+             ${message.text}
             </p>`;
   document.querySelector(".chat-messages").appendChild(div);
 }
