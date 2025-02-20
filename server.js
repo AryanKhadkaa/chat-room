@@ -2,7 +2,12 @@ const path = require("path");
 const express = require("express");
 const http = require("http"); //
 const socketio = require("socket.io"); //requiring//importing socket io package
-const { userJoin, getCurrentUser } = require("./utils/user");
+const {
+  userJoin,
+  getCurrentUser,
+  userLeave,
+  getRoomUsers,
+} = require("./utils/user");
 
 const formatMessage = require("./utils/messages");
 
@@ -40,14 +45,22 @@ io.on("connection", (socket) => {
 
     // Listen for chatMessage
     socket.on("chatMessage", (msg) => {
-      io.emit("message", formatMessage(user.username, msg)); //getting the message from client input compoenent and sending it back to display it properly
+      const user = getCurrentUser(socket.id);
+      io.to(user.room).emit("message", formatMessage(user.username, msg)); //getting the message from client input compoenent and sending it back to display it properly
     });
   });
 
   //Runs when client/user disconnects
 
   socket.on("disconnect", () => {
-    io.emit("message", formatMessage(botname, `A user has left the chat`));
+    const user = userLeave(socket.id);
+
+    if (user) {
+      io.to(user.room).emit(
+        "message",
+        formatMessage(botname, `${user.username} has left the chat`)
+      );
+    }
   });
 });
 
