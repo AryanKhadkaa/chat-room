@@ -43,6 +43,11 @@ io.on("connection", (socket) => {
         formatMessage(botname, `${user.username} has joined the chat`)
       ); // this emits a message to all the users except the one who joins/connects the room/server unlike the above socket.emit method which emits the message to the user that joins the server
 
+    // Send users and room info
+    io.to(user.room).emit("roomUsers", {
+      users: getRoomUsers(user.room),
+      room: user.room,
+    });
     // Listen for chatMessage
     socket.on("chatMessage", (msg) => {
       const user = getCurrentUser(socket.id);
@@ -50,16 +55,21 @@ io.on("connection", (socket) => {
     });
   });
 
+  //socket.emit("roomUsers", { room });
+
   //Runs when client/user disconnects
 
   socket.on("disconnect", () => {
     const user = userLeave(socket.id);
-
     if (user) {
       io.to(user.room).emit(
         "message",
         formatMessage(botname, `${user.username} has left the chat`)
       );
+      io.to(user.room).emit("roomUsers", {
+        users: getRoomUsers(user.room),
+        room: user.room,
+      });
     }
   });
 });

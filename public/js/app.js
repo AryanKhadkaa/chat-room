@@ -11,6 +11,12 @@ const socket = io();
 // Join chat room
 socket.emit("joinRoom", { username, room }); //sending the usrename and room name from frontend to server
 
+//get room and users
+socket.on("roomUsers", ({ room, users }) => {
+  outputRoomName(room);
+  outputUser(users);
+});
+
 // Message from server
 socket.on("message", (message) => {
   console.log(message);
@@ -64,4 +70,20 @@ function outputMessage(message) {
              ${message.text}
             </p>`;
   document.querySelector(".chat-messages").appendChild(div);
+}
+
+// add room name to DOM
+const roomName = document.getElementById("room-name");
+const userList = document.getElementById("users");
+function outputRoomName(room) {
+  console.log(room);
+  roomName.innerText = room;
+}
+
+function outputUser(users) {
+  userList.innerHTML = `
+  ${users.map((user) => `<li> ${user.username} </li>`).join("")} 
+ 
+  `;
+  //using join method to convert the array into string
 }
